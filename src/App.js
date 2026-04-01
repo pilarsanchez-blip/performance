@@ -13,7 +13,7 @@ const C={
   text:"#1E293B",textSec:"#64748B",textLight:"#94A3B8",
   bg:"#F8FAFC",white:"#FFFFFF",border:"#E2E8F0",borderLight:"#F1F5F9",
   headerBg:"#EBF0FF",headerBorder:"#C7D4FE",
-  dirs:["#3B5FE5","#0891B2","#8B5CF6","#D97706","#DB2777","#0D9488"],
+  dirs:["#3B5FE5","#059669","#D97706","#DB2777","#0891B2","#7C3AED"],
 };
 
 const font=`'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif`;
@@ -47,10 +47,10 @@ const HBar=({label,value,maxVal,color=C.primary,peso})=>(<div style={{marginBott
   <div style={{height:6,background:C.borderLight,borderRadius:3}}><div style={{height:6,borderRadius:3,background:color,width:`${Math.min((parseFloat(value)/maxVal)*100,100)}%`,transition:"width 0.4s ease"}}/></div>
 </div>);
 
-const VBar=({label,value,maxVal,color,height=150,onHover,onLeave})=>{const pct=Math.min((parseFloat(value)/maxVal)*100,100);return(<div style={{display:"flex",flexDirection:"column",alignItems:"center",flex:1,cursor:"pointer"}} onMouseEnter={onHover} onMouseLeave={onLeave}>
-  <span style={{fontSize:13,fontWeight:600,color:C.text,marginBottom:6}}>{value}</span>
+const VBar=({label,value,maxVal,color,height=150,onHover,onLeave})=>{const pct=Math.min((parseFloat(value)/maxVal)*100,100);return(<div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:6,flex:1,cursor:"pointer"}} onMouseEnter={onHover} onMouseLeave={onLeave}>
+  <span style={{fontSize:13,fontWeight:600,color:C.text}}>{value}</span>
   <div style={{width:32,height,background:C.borderLight,borderRadius:8,position:"relative",overflow:"hidden"}}><div style={{position:"absolute",bottom:0,width:"100%",height:`${pct}%`,background:color,borderRadius:8,transition:"height 0.4s ease"}}/></div>
-  <div style={{height:36,display:"flex",alignItems:"flex-start",justifyContent:"center",marginTop:6}}><span style={{fontSize:10,color:C.textSec,textAlign:"center",maxWidth:80,lineHeight:"1.3",fontWeight:500}}>{label}</span></div>
+  <span style={{fontSize:10,color:C.textSec,textAlign:"center",maxWidth:80,lineHeight:"1.3",fontWeight:500}}>{label}</span>
 </div>);};
 
 const DiffBadge=({value})=>{const n=parseFloat(value);if(isNaN(n))return null;const pos=n>=0;return<span style={{display:"inline-flex",alignItems:"center",padding:"3px 10px",borderRadius:20,fontSize:11,fontWeight:600,background:pos?C.successBg:C.dangerBg,color:pos?C.success:C.danger,letterSpacing:"0.02em"}}>{pos?"↑":"↓"} {fmt(Math.abs(n))}</span>;};
@@ -72,11 +72,11 @@ const UserSearch=({users,selectedUser,onSelect})=>{const[query,setQuery]=useStat
 
 const buildUserData=(data,userId)=>{const matchUser=(r)=>{const u=r[COL.username]||r[COL.nombre];return u===userId;};const tRow=data.total.find(matchUser);if(!tRow)return null;const competencias=data.comp.filter(r=>matchUser(r)&&r[COL.dimension]?.trim()).map(r=>({name:r[COL.dimension],score:parseFloat(r[COL.puntaje])||0,dif:parseFloat(r[COL.difDimension])||0}));const seenDir=new Set();const direcciones=data.dir.filter(matchUser).filter(r=>{const d=r[COL.direccion];if(!d?.trim()||seenDir.has(d))return false;seenDir.add(d);return true;}).map(r=>({name:r[COL.direccion],score:parseFloat(r[COL.puntaje])||0,dif:parseFloat(r[COL.difDireccion])||0,peso:parseFloat(r[COL.peso])||0}));const compDetail={};data.dirComp.filter(matchUser).forEach(r=>{const dim=r[COL.dimension],dir=r[COL.direccion],p=parseFloat(r[COL.puntaje])||0;if(dim?.trim()&&dir?.trim()){if(!compDetail[dim])compDetail[dim]={};compDetail[dim][dir]=p;}});const questions={};data.resp.filter(r=>{const u=r[COL.username]||r["Username evaluado"]||r[COL.nombre]||r["Nombre evaluado"];return u===userId;}).forEach(r=>{const q=r["Pregunta acortada"],dir=r["Dirección"]||r[COL.direccion],dim=r["Dimensión"]||r[COL.dimension],p=parseFloat(r["Puntaje"]||r[COL.puntaje])||0,fullQ=r["Pregunta completa"]||q;if(q?.trim()&&dir?.trim()){const key=q.trim();if(!questions[key])questions[key]={fullQ,dim:dim||"",dirs:{}};questions[key].dirs[dir]=p;}});return{name:tRow[COL.nombre]||"Sin nombre",ciclo:tRow[COL.ciclo]||"",totalScore:parseFloat(tRow[COL.puntaje])||0,totalDif:parseFloat(tRow[COL.difTotal])||0,competencias,direcciones,compDetail,questions};};
 
-const generateHTML=(ud,config)=>{const sv=(val)=>{const n=parseFloat(val);if(isNaN(n))return"0.0";return((n/100)*(config.scaleMax-config.scaleMin)+config.scaleMin).toFixed(1);};const sr=(val)=>{const n=parseFloat(val);if(isNaN(n))return"0.0";return(((n-config.origMin)/(config.origMax-config.origMin))*(config.scaleMax-config.scaleMin)+config.scaleMin).toFixed(1);};const mx=config.scaleMax;const dirs=["#3B5FE5","#0891B2","#8B5CF6","#D97706","#DB2777","#0D9488"];
+const generateHTML=(ud,config)=>{const sv=(val)=>{const n=parseFloat(val);if(isNaN(n))return"0.0";return((n/100)*(config.scaleMax-config.scaleMin)+config.scaleMin).toFixed(1);};const sr=(val)=>{const n=parseFloat(val);if(isNaN(n))return"0.0";return(((n-config.origMin)/(config.origMax-config.origMin))*(config.scaleMax-config.scaleMin)+config.scaleMin).toFixed(1);};const mx=config.scaleMax;const dirs=["#3B5FE5","#059669","#D97706","#DB2777","#0891B2","#7C3AED"];
 const genRadar=(data,size=280)=>{const cx=size/2,cy=size/2,r=size*0.34,n=data.length;if(n===0)return"";const as=(2*Math.PI)/n;const gX=(i,v)=>cx+r*(v/mx)*Math.cos(as*i-Math.PI/2);const gY=(i,v)=>cy+r*(v/mx)*Math.sin(as*i-Math.PI/2);let svg=`<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">`;for(let l=1;l<=5;l++){const lv=l/5;let pts="";for(let i=0;i<n;i++){pts+=`${cx+r*lv*Math.cos(as*i-Math.PI/2)},${cy+r*lv*Math.sin(as*i-Math.PI/2)} `;}svg+=`<polygon points="${pts.trim()}" fill="none" stroke="#E2E8F0" stroke-width="1" opacity="0.6"/>`;}for(let i=0;i<n;i++){svg+=`<line x1="${cx}" y1="${cy}" x2="${gX(i,mx)}" y2="${gY(i,mx)}" stroke="#E2E8F0" stroke-width="1" opacity="0.4"/>`;}let pts="";for(let i=0;i<n;i++){pts+=`${gX(i,data[i].value)},${gY(i,data[i].value)} `;}svg+=`<polygon points="${pts.trim()}" fill="#3B5FE5" fill-opacity="0.12" stroke="#3B5FE5" stroke-width="2"/>`;for(let i=0;i<n;i++){svg+=`<circle cx="${gX(i,data[i].value)}" cy="${gY(i,data[i].value)}" r="4" fill="#3B5FE5" stroke="#fff" stroke-width="2"/>`;const lx=cx+(r+28)*Math.cos(as*i-Math.PI/2),ly=cy+(r+28)*Math.sin(as*i-Math.PI/2);svg+=`<text x="${lx}" y="${ly}" text-anchor="middle" dominant-baseline="middle" font-size="10" fill="#64748B" font-weight="500">${data[i].label.length>18?data[i].label.substring(0,18)+"…":data[i].label}</text>`;}svg+=`</svg>`;return svg;};
 const genRings=(segments,size=90)=>{const n=segments.length,ringW=size/(n*2+2),cx=size/2,cy=size/2;let svg=`<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">`;for(let i=0;i<n;i++){const outerR=cx-(i*ringW)-2,innerR=outerR-ringW+2;const pct=Math.min(segments[i].value/mx,1),angle=pct*2*Math.PI-Math.PI/2,la=pct>0.5?1:0;svg+=`<circle cx="${cx}" cy="${cy}" r="${outerR}" fill="none" stroke="#F1F5F9" stroke-width="${ringW-2}"/>`;if(pct>0.001){const x1=cx+outerR*Math.cos(-Math.PI/2),y1=cy+outerR*Math.sin(-Math.PI/2),x2=cx+outerR*Math.cos(angle),y2=cy+outerR*Math.sin(angle),ix2=cx+innerR*Math.cos(angle),iy2=cy+innerR*Math.sin(angle),ix1=cx+innerR*Math.cos(-Math.PI/2),iy1=cy+innerR*Math.sin(-Math.PI/2);const d=pct>=0.999?`M${cx},${cy-outerR} A${outerR},${outerR} 0 1,1 ${cx-0.01},${cy-outerR} L${cx-0.01},${cy-innerR} A${innerR},${innerR} 0 1,0 ${cx},${cy-innerR} Z`:`M${x1},${y1} A${outerR},${outerR} 0 ${la},1 ${x2},${y2} L${ix2},${iy2} A${innerR},${innerR} 0 ${la},0 ${ix1},${iy1} Z`;svg+=`<path d="${d}" fill="${dirs[i%6]}"/>`;}}svg+=`</svg>`;return svg;};
 const hbar=(label,value,color)=>{const pct=Math.min(parseFloat(value)/mx*100,100);return`<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:3px"><span style="font-weight:500">${label}</span><span style="font-weight:600">${value}</span></div><div style="height:6px;background:#F1F5F9;border-radius:3px"><div style="height:6px;border-radius:3px;background:${color};width:${pct}%"></div></div></div>`;};
-const vBars=ud.direcciones.map((d,i)=>{const pct=Math.min(parseFloat(sv(d.score))/mx*100,100);return`<div style="text-align:center;flex:1"><div style="font-weight:600;font-size:13px;margin-bottom:6px">${sv(d.score)}</div><div style="height:140px;background:#F1F5F9;border-radius:8px;position:relative;margin:0 6px"><div style="position:absolute;bottom:0;width:100%;height:${pct}%;background:${dirs[i%6]};border-radius:8px"></div></div><div style="height:36px;display:flex;align-items:flex-start;justify-content:center;margin-top:6px"><span style="font-size:10px;color:#64748B;line-height:1.3;font-weight:500;text-align:center">${d.name}</span></div></div>`;}).join("");
+const vBars=ud.direcciones.map((d,i)=>{const pct=Math.min(parseFloat(sv(d.score))/mx*100,100);return`<div style="text-align:center;flex:1"><div style="font-weight:600;font-size:13px;margin-bottom:6px">${sv(d.score)}</div><div style="height:140px;background:#F1F5F9;border-radius:8px;position:relative;margin:0 6px"><div style="position:absolute;bottom:0;width:100%;height:${pct}%;background:${dirs[i%6]};border-radius:8px"></div></div><div style="font-size:10px;color:#64748B;margin-top:6px;line-height:1.3;font-weight:500">${d.name}</div></div>`;}).join("");
 const compCards=ud.competencias.map((comp,i)=>{const detailBars=ud.compDetail[comp.name]?Object.entries(ud.compDetail[comp.name]).map(([dir,val],j)=>hbar(dir,sv(val),dirs[j%6])).join(""):"";return`<div style="background:#fff;border-radius:14px;border:1.5px solid #E2E8F0;overflow:hidden"><div style="padding:14px 18px;border-bottom:1px solid #F1F5F9;display:flex;justify-content:space-between;align-items:center"><h4 style="font-size:14px;font-weight:700;margin:0;max-width:55%">${comp.name}</h4><div style="display:flex;align-items:center;gap:8px"><span style="padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;background:${comp.dif>=0?"#D1FAE5":"#FEE2E2"};color:${comp.dif>=0?"#059669":"#DC2626"}">${comp.dif>=0?"↑":"↓"} ${Math.abs(comp.dif).toFixed(1)}</span><span style="font-size:22px;font-weight:800;color:#4338CA">${sv(comp.score)}</span></div></div><div style="padding:16px 18px">${detailBars}</div></div>`;}).join("");
 const qCards=Object.entries(ud.questions).map(([qName,qData])=>{const segs=Object.entries(qData.dirs).map(([dir,val])=>({label:dir,value:parseFloat(sr(val))}));const items=segs.map((seg,j)=>`<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px"><span style="display:flex;align-items:center;gap:6px"><span style="display:inline-block;width:8px;height:8px;border-radius:4px;background:${dirs[j%6]}"></span>${seg.label}</span><span style="font-weight:600">${seg.value.toFixed(1)}</span></div>`).join("");return`<div style="background:#fff;border-radius:14px;border:1.5px solid #E2E8F0;padding:18px;margin-bottom:12px"><div style="display:flex;gap:20px;align-items:center"><div style="flex:1"><h4 style="margin:0 0 4px;font-size:14px;font-weight:700">${qName}</h4>${qData.dim?`<p style="font-size:11px;color:#64748B;margin:0 0 10px">${qData.dim}</p>`:""}${items}</div>${segs.length>1?`<div style="flex-shrink:0">${genRings(segs)}</div>`:""}</div></div>`;}).join("");
 const dirHeaders=ud.direcciones.map(d=>`<th style="text-align:center;padding:10px;font-size:11px;color:#64748B">${d.name}</th>`).join("");
@@ -133,45 +133,7 @@ const scaleResp=(val)=>{if(!config)return parseFloat(val)||0;const n=parseFloat(
 const mx=config?config.scaleMax:100;
 const users=useMemo(()=>{if(!data)return[];const seen=new Set();return data.total.filter(r=>{const u=r[COL.username]||r[COL.nombre];if(!u||!u.trim()||seen.has(u))return false;seen.add(u);return true;}).map(r=>({username:r[COL.username]||r[COL.nombre],name:r[COL.nombre]||r[COL.username]})).sort((a,b)=>(a.name||"").localeCompare(b.name||""));},[data]);
 const handleSelectUser=(u)=>{setSelectedUser(u);setView("individual");};
-  const userData=useMemo(()=>{
-    if(!data||!selectedUser) return null;
-    const raw=buildUserData(data,selectedUser);
-    if(!raw) return raw;
-    
-    if(calcMode==="proportional"&&raw.direcciones.length>0){
-      // Find all people in the same cycle
-      const userCiclo=raw.ciclo;
-      const cicloUsers=data.total.filter(r=>r[COL.ciclo]===userCiclo);
-      
-      // Find which directions exist in this cycle (from all users in same cycle)
-      const cicloDirs=new Set();
-      data.dir.filter(r=>r[COL.ciclo]===userCiclo).forEach(r=>{
-        const d=r[COL.direccion];if(d?.trim())cicloDirs.add(d);
-      });
-      
-      // Redistribute weights equally among cycle's directions
-      const numDirs=cicloDirs.size||raw.direcciones.length;
-      const equalWeight=1/numDirs;
-      
-      const newDirs=raw.direcciones.map(d=>({...d,pesoOriginal:d.peso,peso:equalWeight}));
-      const newTotal=newDirs.reduce((s,d)=>s+(d.score*d.peso),0);
-      
-      // Calculate proportional average for same cycle
-      const cicloUsernames=new Set(cicloUsers.map(r=>r[COL.username]||r[COL.nombre]).filter(Boolean));
-      let cicloTotals=[];
-      cicloUsernames.forEach(uid=>{
-        const userDirs=data.dir.filter(r=>(r[COL.username]||r[COL.nombre])===uid&&r[COL.ciclo]===userCiclo);
-        const seenD=new Set();
-        const uDirs=userDirs.filter(r=>{const d=r[COL.direccion];if(!d?.trim()||seenD.has(d))return false;seenD.add(d);return true;});
-        const uTotal=uDirs.reduce((s,r)=>(parseFloat(r[COL.puntaje])||0)*equalWeight+s,0);
-        if(uDirs.length>0)cicloTotals.push(uTotal);
-      });
-      const cicloAvg=cicloTotals.length?cicloTotals.reduce((a,b)=>a+b,0)/cicloTotals.length:0;
-      
-      return{...raw,direcciones:newDirs,totalScore:newTotal,totalDif:newTotal-cicloAvg,proportionalAdjusted:true,cicloAvg};
-    }
-    return raw;
-  },[data,selectedUser,calcMode]);
+const userData=useMemo(()=>data&&selectedUser?buildUserData(data,selectedUser):null,[data,selectedUser]);
 const exportZip=async()=>{setExporting(true);try{const zip=new JSZip();for(const user of users){const ud=buildUserData(data,user.username);if(ud){const html=generateHTML(ud,config);const safeName=ud.name.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s,]/g,"").replace(/\s+/g,"_").substring(0,50);zip.file(`${safeName}.html`,html);}}const blob=await zip.generateAsync({type:"blob"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="reportes_evaluacion.zip";a.click();URL.revokeObjectURL(url);}catch(e){console.error(e);alert("Error generando el ZIP");}setExporting(false);};
 
 if(!connected){return(<div style={{minHeight:"100vh",background:C.bg,display:"flex",alignItems:"center",justifyContent:"center",padding:20,fontFamily:font}}>
@@ -222,15 +184,6 @@ return(<div style={{minHeight:"100vh",background:C.bg,fontFamily:font}}>
             <span style={{fontSize:40,fontWeight:800}}>{fmt(scaleVal(userData.totalScore))}</span>
           </div></div>
       </div>
-    </div>
-
-    {/* Calc mode toggle */}
-    <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:20,background:C.white,borderRadius:10,border:`1.5px solid ${C.border}`,padding:"10px 14px",width:"fit-content"}}>
-      <span style={{fontSize:12,color:C.textSec,fontWeight:500}}>Cálculo:</span>
-      {[["strict","Estricto","Pesos originales del Sheet"],["proportional","Proporcional","Redistribuye pesos según direcciones del ciclo"]].map(([val,label,desc])=>(
-        <button key={val} onClick={()=>setCalcMode(val)} title={desc} style={{padding:"5px 12px",borderRadius:8,border:`1.5px solid ${calcMode===val?C.primary:C.border}`,background:calcMode===val?C.primaryBg:C.white,color:calcMode===val?C.primary:C.textSec,fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:font}}>{label}</button>
-      ))}
-      {userData.proportionalAdjusted&&calcMode==="proportional"&&<span style={{fontSize:11,color:C.primary,background:C.primaryBg,padding:"2px 8px",borderRadius:8}}>vs prom. ciclo: {fmt(scaleVal(userData.cicloAvg))}</span>}
     </div>
 
     <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginBottom:20}}>
