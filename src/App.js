@@ -133,7 +133,45 @@ const scaleResp=(val)=>{if(!config)return parseFloat(val)||0;const n=parseFloat(
 const mx=config?config.scaleMax:100;
 const users=useMemo(()=>{if(!data)return[];const seen=new Set();return data.total.filter(r=>{const u=r[COL.username]||r[COL.nombre];if(!u||!u.trim()||seen.has(u))return false;seen.add(u);return true;}).map(r=>({username:r[COL.username]||r[COL.nombre],name:r[COL.nombre]||r[COL.username]})).sort((a,b)=>(a.name||"").localeCompare(b.name||""));},[data]);
 const handleSelectUser=(u)=>{setSelectedUser(u);setView("individual");};
-const userData=useMemo(()=>data&&selectedUser?buildUserData(data,selectedUser):null,[data,selectedUser]);
+  const userData=useMemo(()=>{
+    if(!data||!selectedUser) return null;
+    const raw=buildUserData(data,selectedUser);
+    if(!raw) return raw;
+    
+    if(calcMode==="proportional"&&raw.direcciones.length>0){
+      // Find all people in the same cycle
+      const userCiclo=raw.ciclo;
+      const cicloUsers=data.total.filter(r=>r[COL.ciclo]===userCiclo);
+      
+      // Find which directions exist in this cycle (from all users in same cycle)
+      const cicloDirs=new Set();
+      data.dir.filter(r=>r[COL.ciclo]===userCiclo).forEach(r=>{
+        const d=r[COL.direccion];if(d?.trim())cicloDirs.add(d);
+      });
+      
+      // Redistribute weights equally among cycle's directions
+      const numDirs=cicloDirs.size||raw.direcciones.length;
+      const equalWeight=1/numDirs;
+      
+      const newDirs=raw.direcciones.map(d=>({...d,pesoOriginal:d.peso,peso:equalWeight}));
+      const newTotal=newDirs.reduce((s,d)=>s+(d.score*d.peso),0);
+      
+      // Calculate proportional average for same cycle
+      const cicloUsernames=new Set(cicloUsers.map(r=>r[COL.username]||r[COL.nombre]).filter(Boolean));
+      let cicloTotals=[];
+      cicloUsernames.forEach(uid=>{
+        const userDirs=data.dir.filter(r=>(r[COL.username]||r[COL.nombre])===uid&&r[COL.ciclo]===userCiclo);
+        const seenD=new Set();
+        const uDirs=userDirs.filter(r=>{const d=r[COL.direccion];if(!d?.trim()||seenD.has(d))return false;seenD.add(d);return true;});
+        const uTotal=uDirs.reduce((s,r)=>(parseFloat(r[COL.puntaje])||0)*equalWeight+s,0);
+        if(uDirs.length>0)cicloTotals.push(uTotal);
+      });
+      const cicloAvg=cicloTotals.length?cicloTotals.reduce((a,b)=>a+b,0)/cicloTotals.length:0;
+      
+      return{...raw,direcciones:newDirs,totalScore:newTotal,totalDif:newTotal-cicloAvg,proportionalAdjusted:true,cicloAvg};
+    }
+    return raw;
+  },[data,selectedUser,calcMode]);
 const exportZip=async()=>{setExporting(true);try{const zip=new JSZip();for(const user of users){const ud=buildUserData(data,user.username);if(ud){const html=generateHTML(ud,config);const safeName=ud.name.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s,]/g,"").replace(/\s+/g,"_").substring(0,50);zip.file(`${safeName}.html`,html);}}const blob=await zip.generateAsync({type:"blob"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="reportes_evaluacion.zip";a.click();URL.revokeObjectURL(url);}catch(e){console.error(e);alert("Error generando el ZIP");}setExporting(false);};
 
 if(!connected){return(<div style={{minHeight:"100vh",background:C.bg,display:"flex",alignItems:"center",justifyContent:"center",padding:20,fontFamily:font}}>
@@ -184,6 +222,15 @@ return(<div style={{minHeight:"100vh",background:C.bg,fontFamily:font}}>
             <span style={{fontSize:40,fontWeight:800}}>{fmt(scaleVal(userData.totalScore))}</span>
           </div></div>
       </div>
+    </div>
+
+    {/* Calc mode toggle */}
+    <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:20,background:C.white,borderRadius:10,border:`1.5px solid ${C.border}`,padding:"10px 14px",width:"fit-content"}}>
+      <span style={{fontSize:12,color:C.textSec,fontWeight:500}}>Cálculo:</span>
+      {[["strict","Estricto","Pesos originales del Sheet"],["proportional","Proporcional","Redistribuye pesos según direcciones del ciclo"]].map(([val,label,desc])=>(
+        <button key={val} onClick={()=>setCalcMode(val)} title={desc} style={{padding:"5px 12px",borderRadius:8,border:`1.5px solid ${calcMode===val?C.primary:C.border}`,background:calcMode===val?C.primaryBg:C.white,color:calcMode===val?C.primary:C.textSec,fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:font}}>{label}</button>
+      ))}
+      {userData.proportionalAdjusted&&calcMode==="proportional"&&<span style={{fontSize:11,color:C.primary,background:C.primaryBg,padding:"2px 8px",borderRadius:8}}>vs prom. ciclo: {fmt(scaleVal(userData.cicloAvg))}</span>}
     </div>
 
     <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginBottom:20}}>
